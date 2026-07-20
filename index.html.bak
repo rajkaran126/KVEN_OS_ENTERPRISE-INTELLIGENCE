@@ -1,0 +1,1261 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CortexOS — Enterprise Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #07090e;
+      --bg2: #0c1018;
+      --surface: rgba(18, 23, 34, 0.75);
+      --surface2: rgba(26, 32, 46, 0.65);
+      --line: rgba(255, 255, 255, 0.12);
+      --line-glow: rgba(241, 195, 92, 0.35);
+      --text: #f5f7fa;
+      --muted: #949db2;
+      --lime: #b7f05a;
+      --cyan: #54ddff;
+      --violet: #9d8bff;
+      --amber: #f8c15c;
+      --red: #ff7f8c;
+      --shadow-glass: 0 20px 50px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+      --shadow-hover: 0 30px 60px rgba(0, 0, 0, 0.65), 0 0 32px rgba(241, 195, 92, 0.18);
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+      /* Spacing Tokens */
+      --space-xs: 6px;
+      --space-sm: 12px;
+      --space-md: 20px;
+      --space-lg: 28px;
+      --space-xl: 36px;
+      --space-2xl: 48px;
+    }
+
+    * { box-sizing: border-box; }
+    
+    body {
+      margin: 0;
+      background: radial-gradient(circle at 75% -10%, #22344d 0%, transparent 32%),
+                  radial-gradient(circle at 18% 100%, #1e1b38 0%, transparent 35%),
+                  var(--bg);
+      color: var(--text);
+      font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 14px;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Ambient Glowing Orbs Background */
+    body:before {
+      content: '';
+      position: fixed;
+      inset: -30%;
+      z-index: 0;
+      pointer-events: none;
+      background: radial-gradient(ellipse at 34% 38%, rgba(84, 221, 255, 0.08), transparent 22%),
+                  radial-gradient(ellipse at 71% 47%, rgba(157, 139, 255, 0.07), transparent 25%),
+                  radial-gradient(ellipse at 49% 90%, rgba(241, 195, 92, 0.06), transparent 20%);
+      filter: blur(40px);
+      animation: ambientDrift 20s ease-in-out infinite alternate;
+    }
+
+    @keyframes ambientDrift {
+      0% { transform: translate3d(-2%, -2%, 0) scale(1); }
+      100% { transform: translate3d(3%, 2%, 0) scale(1.06); }
+    }
+
+    /* Layout Shell & Bounds Spacing */
+    .shell {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      min-height: 100vh;
+      position: relative;
+      z-index: 1;
+    }
+
+    .sidebar {
+      border-right: 1px solid var(--line);
+      padding: var(--space-xl) var(--space-md);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xl);
+      background: linear-gradient(180deg, rgba(10, 13, 19, 0.72) 0%, rgba(5, 7, 11, 0.85) 100%);
+      backdrop-filter: blur(32px) saturate(190%);
+      -webkit-backdrop-filter: blur(32px) saturate(190%);
+      box-shadow: 10px 0 40px rgba(0, 0, 0, 0.25);
+      transition: all 0.45s var(--ease-out);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 10px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      font-size: 19px;
+      cursor: pointer;
+    }
+
+    .orb {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: conic-gradient(from 210deg, var(--cyan), var(--violet), var(--lime), var(--cyan));
+      box-shadow: 0 0 28px rgba(84, 221, 255, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.6);
+      transition: transform 0.4s var(--ease-bounce);
+    }
+
+    .brand:hover .orb {
+      transform: scale(1.15) rotate(15deg);
+    }
+
+    .eyebrow {
+      font: 600 11px 'DM Mono', monospace;
+      letter-spacing: 1.4px;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    /* Navigation Items with Smooth Slide & Glow Indicators */
+    .nav {
+      display: grid;
+      gap: var(--space-xs);
+    }
+
+    .nav button {
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      font: 600 13.5px 'Manrope', sans-serif;
+      text-align: left;
+      padding: 12px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      transition: all 0.3s var(--ease-out);
+      position: relative;
+    }
+
+    .nav button:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      transform: translateX(6px);
+      border-color: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(12px);
+    }
+
+    .nav button.active {
+      background: linear-gradient(90deg, rgba(241, 195, 92, 0.16) 0%, rgba(255, 255, 255, 0.03) 100%);
+      color: #fff;
+      border-left: 4px solid var(--amber);
+      padding-left: 18px;
+      border-top-color: rgba(255, 255, 255, 0.1);
+      border-bottom-color: rgba(255, 255, 255, 0.1);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 4px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .nav button.active:before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: var(--amber);
+      border-radius: 50%;
+      box-shadow: 0 0 12px var(--amber);
+    }
+
+    /* Workspace Glass Widget */
+    .workspace {
+      margin-top: auto;
+      padding: var(--space-md);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.02) 100%);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 12px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .workspace b {
+      display: block;
+      margin-top: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    /* Main Container & Topbar Spacing */
+    .main {
+      padding: var(--space-xl) var(--space-2xl) 60px;
+      max-width: 1650px;
+      width: 100%;
+      margin: 0 auto;
+      transition: padding 0.45s var(--ease-out);
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-xl);
+      padding-bottom: var(--space-md);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .crumb {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #9d8bff 0%, #4467b6 100%);
+      font-weight: 800;
+      font-size: 12px;
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.6), 0 4px 14px rgba(0, 0, 0, 0.3);
+      cursor: pointer;
+      transition: transform 0.3s var(--ease-bounce);
+    }
+
+    .avatar:hover {
+      transform: scale(1.1);
+    }
+
+    /* Glossy Glass Buttons */
+    .icon-btn, .button {
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 11px 18px;
+      font: 600 13px 'Manrope', sans-serif;
+      cursor: pointer;
+      backdrop-filter: blur(18px) saturate(180%);
+      -webkit-backdrop-filter: blur(18px) saturate(180%);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 6px 18px rgba(0, 0, 0, 0.25);
+      transition: all 0.3s var(--ease-out);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .button.primary {
+      background: linear-gradient(135deg, #f1c35c 0%, #d49b25 100%);
+      color: #0c0f14;
+      border-color: #f7d488;
+      font-weight: 800;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 8px 22px rgba(241, 195, 92, 0.32);
+    }
+
+    .button.primary:before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -70%;
+      width: 50%;
+      height: 200%;
+      background: linear-gradient(110deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+      transform: rotate(25deg);
+      transition: left 0.75s ease;
+    }
+
+    .button.primary:hover:before {
+      left: 150%;
+    }
+
+    .button.primary:hover {
+      background: linear-gradient(135deg, #f8d88e 0%, #e0a734 100%);
+      transform: translateY(-3px) scale(1.025);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 12px 30px rgba(241, 195, 92, 0.45);
+    }
+
+    .button:hover, .icon-btn:hover {
+      transform: translateY(-2px);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%);
+      border-color: rgba(255, 255, 255, 0.3);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 10px 24px rgba(0, 0, 0, 0.35);
+    }
+
+    /* Views & Smooth Stagger Animations */
+    .view {
+      display: none;
+      animation: viewFadeIn 0.55s var(--ease-out) forwards;
+      will-change: transform, opacity;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    @keyframes viewFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(18px) scale(0.988);
+        filter: blur(4px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+      }
+    }
+
+    .view.active .card, .view.active .hero, .view.active .metric {
+      animation: cardStagger 0.65s var(--ease-out) both;
+    }
+
+    .view.active .kpis .metric:nth-child(1) { animation-delay: 0.04s; }
+    .view.active .kpis .metric:nth-child(2) { animation-delay: 0.08s; }
+    .view.active .kpis .metric:nth-child(3) { animation-delay: 0.12s; }
+    .view.active .kpis .metric:nth-child(4) { animation-delay: 0.16s; }
+    .view.active .content-grid article { animation-delay: 0.2s; }
+    .view.active .content-grid aside { animation-delay: 0.25s; }
+
+    @keyframes cardStagger {
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Typography & Hero Section Spacing */
+    h1 {
+      letter-spacing: -1.4px;
+      margin: 0;
+      font-size: 34px;
+      line-height: 1.15;
+      font-weight: 800;
+    }
+
+    h2 {
+      font-size: 17px;
+      margin: 0;
+      letter-spacing: -0.3px;
+      font-weight: 700;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      margin: 12px 0 0;
+      max-width: 720px;
+      line-height: 1.65;
+      font-size: 14.5px;
+    }
+
+    .hero {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: var(--space-xl);
+      padding-bottom: var(--space-sm);
+    }
+
+    .signal {
+      font: 600 11px 'DM Mono', monospace;
+      color: var(--amber);
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    .signal:before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--amber);
+      box-shadow: 0 0 12px var(--amber);
+      animation: signalPulse 2.4s ease-in-out infinite;
+    }
+
+    @keyframes signalPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(241, 195, 92, 0.7), 0 0 10px var(--amber); }
+      50% { box-shadow: 0 0 0 7px rgba(241, 195, 92, 0), 0 0 18px var(--amber); }
+    }
+
+    /* Component Layout Grids & Spacing Bounds */
+    .grid {
+      display: grid;
+      gap: var(--space-xl);
+    }
+
+    .kpis {
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-lg);
+      margin-bottom: var(--space-xl);
+    }
+
+    /* Multi-layered Frosted Glass Cards */
+    .card {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.085) 0%, rgba(255, 255, 255, 0.02) 100%), rgba(14, 18, 26, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 20px;
+      padding: var(--space-lg);
+      box-shadow: var(--shadow-glass);
+      backdrop-filter: blur(28px) saturate(190%);
+      -webkit-backdrop-filter: blur(28px) saturate(190%);
+      transition: transform 0.35s var(--ease-out), box-shadow 0.35s ease, border-color 0.35s ease, background 0.35s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card:before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+      pointer-events: none;
+    }
+
+    .card:hover {
+      transform: translateY(-5px) scale(1.008);
+      box-shadow: var(--shadow-hover);
+      border-color: rgba(241, 195, 92, 0.38);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.03) 100%), rgba(18, 23, 34, 0.82);
+    }
+
+    .metric .label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .metric .value {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -1.2px;
+      margin: 12px 0 8px;
+      color: #fff;
+    }
+
+    .delta {
+      font: 600 11px 'DM Mono', monospace;
+    }
+
+    .up { color: var(--lime); }
+    .down { color: var(--red); }
+
+    /* Content Layouts */
+    .content-grid {
+      grid-template-columns: 1.55fr 0.95fr;
+      align-items: start;
+      margin-top: var(--space-xl);
+      gap: var(--space-xl);
+    }
+
+    .insight {
+      min-height: 330px;
+      padding: var(--space-xl);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .insight:after {
+      content: '';
+      position: absolute;
+      width: 360px;
+      height: 360px;
+      right: -130px;
+      bottom: -200px;
+      border-radius: 50%;
+      border: 1px solid rgba(84, 221, 255, 0.22);
+      box-shadow: 0 0 0 55px rgba(84, 221, 255, 0.04), 0 0 0 110px rgba(84, 221, 255, 0.02);
+      pointer-events: none;
+    }
+
+    .insight-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .tag {
+      font: 600 11px 'DM Mono', monospace;
+      padding: 6px 12px;
+      border-radius: 8px;
+      background: rgba(241, 195, 92, 0.12);
+      color: var(--amber);
+      border: 1px solid rgba(241, 195, 92, 0.2);
+    }
+
+    .finding {
+      font-size: 21px;
+      line-height: 1.45;
+      max-width: 560px;
+      letter-spacing: -0.6px;
+      margin: 30px 0 16px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .finding b {
+      color: var(--amber);
+    }
+
+    .evidence {
+      color: var(--muted);
+      line-height: 1.7;
+      max-width: 550px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .link {
+      border: 0;
+      padding: 0;
+      background: none;
+      color: var(--cyan);
+      font: 600 13px 'Manrope', sans-serif;
+      cursor: pointer;
+      margin-top: 22px;
+      position: relative;
+      z-index: 1;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: transform 0.25s ease;
+    }
+
+    .link:hover {
+      transform: translateX(4px);
+    }
+
+    /* Approval List & Decision Cards */
+    .approval-list {
+      display: grid;
+      gap: var(--space-md);
+      margin-top: var(--space-md);
+    }
+
+    .approval {
+      padding: var(--space-md);
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      display: grid;
+      gap: 10px;
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      transition: all 0.3s var(--ease-out);
+    }
+
+    .approval:hover {
+      border-color: rgba(255, 255, 255, 0.25);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .approval-head {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+    }
+
+    .risk {
+      font: 600 10.5px 'DM Mono', monospace;
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+
+    .risk.high {
+      background: rgba(255, 127, 140, 0.16);
+      color: var(--red);
+      border: 1px solid rgba(255, 127, 140, 0.25);
+    }
+
+    .risk.medium {
+      background: rgba(248, 193, 92, 0.16);
+      color: var(--amber);
+      border: 1px solid rgba(248, 193, 92, 0.25);
+    }
+
+    .approval small {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .approval-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .mini {
+      font: 600 12px 'Manrope', sans-serif;
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.25s var(--ease-out);
+    }
+
+    .mini.ok {
+      color: var(--lime);
+      border-color: rgba(183, 240, 90, 0.4);
+      background: rgba(183, 240, 90, 0.06);
+    }
+
+    .mini:hover {
+      transform: translateY(-2px);
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    /* Timeline & Evidence Ledger Spacing */
+    .activity {
+      margin-top: var(--space-xl);
+    }
+
+    .timeline {
+      margin-top: var(--space-md);
+      display: grid;
+      gap: var(--space-md);
+    }
+
+    .event {
+      display: grid;
+      grid-template-columns: 60px 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .event time {
+      font: 600 11px 'DM Mono', monospace;
+      color: var(--muted);
+      padding-top: 2px;
+    }
+
+    .event p {
+      margin: 0;
+      color: #e0e5f0;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .event span {
+      color: var(--muted);
+    }
+
+    /* Executive Copilot & Chat Layout */
+    .chat-layout {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: var(--space-xl);
+    }
+
+    .conversation {
+      min-height: 640px;
+      display: flex;
+      flex-direction: column;
+      padding: var(--space-xl);
+    }
+
+    .query {
+      border: 1px solid rgba(241, 195, 92, 0.3);
+      background: rgba(241, 195, 92, 0.06);
+      border-radius: 16px;
+      padding: 20px;
+      margin: var(--space-lg) 0 var(--space-md);
+      line-height: 1.6;
+    }
+
+    .query b {
+      font-size: 12px;
+      color: var(--amber);
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .answer {
+      padding: 6px;
+      line-height: 1.7;
+      color: #e2e7f2;
+    }
+
+    .four-col {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin: 22px 0;
+    }
+
+    .answer-block {
+      border-left: 3px solid var(--line);
+      padding: 12px 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 0 12px 12px 0;
+      backdrop-filter: blur(14px);
+    }
+
+    .answer-block.fact { border-color: var(--cyan); }
+    .answer-block.ins { border-color: var(--violet); }
+    .answer-block.pred { border-color: var(--amber); }
+    .answer-block.rec { border-color: var(--lime); }
+
+    .answer-block label {
+      font: 600 10px 'DM Mono', monospace;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .answer-block p {
+      margin: 8px 0 0;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    /* Form Controls & Glass Inputs */
+    .form-field, .composer input, .report-chat textarea {
+      width: 100%;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: rgba(8, 11, 17, 0.65);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 14px 16px;
+      font: 13px 'Manrope', sans-serif;
+      outline: none;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s var(--ease-out);
+    }
+
+    .form-field:focus, .composer input:focus, .report-chat textarea:focus {
+      border-color: rgba(241, 195, 92, 0.65);
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 20px rgba(241, 195, 92, 0.22);
+      background: rgba(12, 16, 25, 0.82);
+    }
+
+    .composer {
+      margin-top: auto;
+      display: flex;
+      gap: 12px;
+      padding-top: var(--space-lg);
+    }
+
+    .sources {
+      display: grid;
+      gap: 14px;
+    }
+
+    .source {
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      backdrop-filter: blur(16px);
+      transition: border-color 0.25s ease;
+    }
+
+    .source:hover {
+      border-color: rgba(255, 255, 255, 0.22);
+    }
+
+    .source b {
+      display: block;
+      font-size: 13px;
+      color: #fff;
+    }
+
+    .source p {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+      margin: 6px 0 0;
+    }
+
+    .source .verified {
+      font: 600 10px 'DM Mono', monospace;
+      color: var(--lime);
+      margin-top: 10px;
+      display: block;
+    }
+
+    /* Simulation Lab Spacing & Controls */
+    .sim-grid {
+      grid-template-columns: 400px 1fr;
+      gap: var(--space-xl);
+    }
+
+    .control {
+      margin: 24px 0;
+    }
+
+    .control label {
+      display: flex;
+      justify-content: space-between;
+      color: #e2e7f2;
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
+
+    .control output {
+      font: 600 12px 'DM Mono', monospace;
+      color: var(--amber);
+    }
+
+    input[type=range] {
+      width: 100%;
+      height: 6px;
+      background: var(--surface2);
+      border-radius: 10px;
+      outline: none;
+      accent-color: var(--amber);
+    }
+
+    .scenario-cards {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin: 22px 0;
+    }
+
+    .scenario-card .big {
+      font-size: 28px;
+      letter-spacing: -1.2px;
+      font-weight: 800;
+      margin: 12px 0 6px;
+      color: #fff;
+    }
+
+    .barrow {
+      display: grid;
+      grid-template-columns: 120px 1fr 60px;
+      gap: 14px;
+      align-items: center;
+      margin: 20px 0;
+      font-size: 12px;
+    }
+
+    .bar {
+      height: 10px;
+      background: var(--surface2);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .bar i {
+      display: block;
+      height: 100%;
+      background: var(--cyan);
+      border-radius: 10px;
+      transition: width 0.5s var(--ease-out);
+    }
+
+    /* Agent Network Grid Spacing */
+    .agents {
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-xl);
+    }
+
+    .agent {
+      min-height: 200px;
+      position: relative;
+      overflow: hidden;
+      padding: var(--space-lg);
+    }
+
+    .agent .agent-icon {
+      font: 600 12px 'DM Mono', monospace;
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      background: rgba(84, 221, 255, 0.12);
+      color: var(--cyan);
+      margin-bottom: 20px;
+      border: 1px solid rgba(84, 221, 255, 0.2);
+    }
+
+    .agent h2 {
+      margin-bottom: 10px;
+    }
+
+    .agent p {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.65;
+      margin: 0;
+    }
+
+    .agent footer {
+      position: absolute;
+      left: var(--space-lg);
+      bottom: 20px;
+      right: var(--space-lg);
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font: 600 11px 'DM Mono', monospace;
+    }
+
+    .agent footer b {
+      color: var(--lime);
+    }
+
+    /* Memory Table Glass Aesthetics */
+    .memory-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .memory-table th {
+      text-align: left;
+      padding: 14px 16px;
+      color: var(--muted);
+      font: 600 11px 'DM Mono', monospace;
+      border-bottom: 1px solid var(--line);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .memory-table td {
+      padding: 18px 16px;
+      border-bottom: 1px solid var(--line);
+      color: #e2e7f2;
+    }
+
+    .pill {
+      font: 600 11px 'DM Mono', monospace;
+      padding: 5px 10px;
+      border-radius: 8px;
+      background: rgba(157, 139, 255, 0.15);
+      color: var(--violet);
+      border: 1px solid rgba(157, 139, 255, 0.25);
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: var(--space-xl);
+      right: var(--space-xl);
+      background: linear-gradient(135deg, #f1c35c 0%, #d49b25 100%);
+      color: #0c0f14;
+      padding: 14px 22px;
+      border-radius: 14px;
+      font: 700 13px 'Manrope', sans-serif;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+      transform: translateY(90px);
+      opacity: 0;
+      transition: all 0.4s var(--ease-bounce);
+      z-index: 100;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* Responsive Bounds */
+    @media(max-width: 1100px) {
+      .kpis { grid-template-columns: repeat(2, 1fr); }
+      .content-grid, .chat-layout, .sim-grid { grid-template-columns: 1fr; }
+      .agents { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media(max-width: 760px) {
+      .shell { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .main { padding: var(--space-md); }
+      .hero { align-items: flex-start; gap: 16px; flex-direction: column; }
+      .kpis, .four-col, .scenario-cards, .agents { grid-template-columns: 1fr; }
+    }
+
+    /* Zero Gold Tracing Light Mode & Crystal Frosted Glass Design */
+    body.light {
+      --bg: #dce8f5;
+      --bg2: #edf4fb;
+      --surface: rgba(246, 250, 255, 0.78);
+      --surface2: #d4e1ee;
+      --line: rgba(20, 43, 69, 0.14);
+      --text: #102031;
+      --muted: #4e667d;
+      --lime: #162534;
+      --cyan: #203c59;
+      --violet: #4e6983;
+      --amber: #173651;
+      --red: #a43e47;
+      --shadow-glass: 0 20px 50px rgba(30, 60, 90, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+      --shadow-hover: 0 28px 60px rgba(20, 50, 80, 0.18), inset 0 1px 0 rgba(255, 255, 255, 1);
+      background: #dce8f5;
+    }
+
+    body.light:before { opacity: 0.35; }
+
+    body.light .sidebar {
+      background: linear-gradient(180deg, rgba(228, 238, 249, 0.82) 0%, rgba(205, 223, 239, 0.88) 100%);
+      border-right-color: rgba(23, 54, 81, 0.15);
+      backdrop-filter: blur(32px);
+    }
+
+    body.light .card {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(230, 242, 255, 0.7) 100%), rgba(255, 255, 255, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(28px) saturate(190%);
+      -webkit-backdrop-filter: blur(28px) saturate(190%);
+      box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.95), 0 16px 40px rgba(30, 60, 90, 0.09);
+    }
+
+    body.light .card:hover {
+      border-color: rgba(23, 54, 81, 0.3);
+      box-shadow: inset 0 1px 2px rgba(255, 255, 255, 1), 0 24px 50px rgba(20, 50, 80, 0.16);
+    }
+
+    body.light .nav button:hover, body.light .nav button.active {
+      background: rgba(23, 54, 81, 0.09);
+      color: #102031;
+    }
+
+    body.light .nav button.active {
+      border-left: 4px solid #173651;
+      background: linear-gradient(90deg, rgba(23, 54, 81, 0.14) 0%, rgba(255, 255, 255, 0.02) 100%);
+    }
+
+    body.light .nav button.active:before {
+      background: #173651;
+      box-shadow: 0 0 8px rgba(23, 54, 81, 0.4);
+    }
+
+    body.light .signal { color: #173651; }
+    body.light .signal:before { background: #173651; box-shadow: 0 0 8px rgba(23, 54, 81, 0.4); }
+
+    body.light .tag { background: rgba(23, 54, 81, 0.09); color: #173651; border-color: rgba(23, 54, 81, 0.16); }
+    body.light .link { color: #173651; }
+
+    body.light .icon-btn, body.light .button {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(225, 238, 250, 0.6) 100%);
+      border-color: rgba(23, 54, 81, 0.15);
+      color: #102031;
+      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.9), 0 4px 14px rgba(30, 60, 90, 0.08);
+    }
+
+    body.light .button.primary {
+      background: linear-gradient(135deg, #173651 0%, #0d2134 100%);
+      color: #ffffff !important;
+      border-color: #173651;
+      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.3), 0 6px 20px rgba(23, 54, 81, 0.25);
+    }
+
+    body.light .button.primary:hover {
+      background: linear-gradient(135deg, #244c71 0%, #173651 100%);
+    }
+
+    body.light .form-field, body.light .composer input {
+      background: rgba(255, 255, 255, 0.78);
+      color: #102031;
+      border-color: rgba(23, 54, 81, 0.18);
+    }
+
+    body.light .workspace {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(225, 239, 250, 0.45) 100%);
+      border-color: rgba(23, 54, 81, 0.16);
+    }
+
+    body.light .toast {
+      background: #173651;
+      color: #fff;
+    }
+
+    body.light h1, body.light h2, body.light h3, body.light .label, body.light .eyebrow, body.light .section-head h2, body.light .finding, body.light .metric .value {
+      color: #102031 !important;
+    }
+
+    body.light .finding b { color: #173651 !important; }
+
+    body.light .approval, body.light .source, body.light .answer-block, body.light .report-section, body.light .forum-post {
+      background: rgba(255, 255, 255, 0.75);
+      border-color: rgba(23, 54, 81, 0.14);
+      backdrop-filter: blur(18px);
+    }
+    /* Boundless cosmic canvas and glossy glass controls */
+    #home {
+      margin: 0;
+      padding: var(--space-xl) var(--space-2xl);
+      min-height: calc(100vh - 80px);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 24px;
+      box-shadow: var(--shadow-glass);
+      background-position: center;
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+    }
+    #home .home-hero { min-height: calc(100vh - 160px); }
+    #home .home-rail { left: 48px; right: 48px; }
+    
+    .forum-layout {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: var(--space-xl);
+      align-items: start;
+    }
+    .forum-compose { position: sticky; top: 24px; padding: var(--space-lg); }
+    .forum-compose form { display: grid; gap: 16px; }
+    .forum-feed { display: grid; gap: 16px; }
+    .forum-post { position: relative; padding: var(--space-lg); }
+
+    /* Report Studio & Copilot Spacing */
+    .report-layout {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: var(--space-xl);
+      align-items: start;
+    }
+    .report-chat {
+      margin: var(--space-md) 0 var(--space-lg);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 18px;
+      overflow: hidden;
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 12px 30px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(20px);
+    }
+    .report-chat-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      font-size: 13px;
+    }
+    .report-thread {
+      display: grid;
+      gap: 12px;
+      max-height: 220px;
+      overflow: auto;
+      padding: 16px;
+    }
+    .report-bubble {
+      max-width: 88%;
+      display: grid;
+      gap: 6px;
+      padding: 12px 16px;
+      border-radius: 14px;
+      font-size: 12.5px;
+      line-height: 1.55;
+    }
+    .report-bubble.cortex {
+      justify-self: start;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    .report-bubble.user {
+      justify-self: end;
+      background: linear-gradient(135deg, rgba(241, 195, 92, 0.25) 0%, rgba(241, 195, 92, 0.1) 100%);
+      border: 1px solid rgba(241, 195, 92, 0.35);
+      color: #fff;
+    }
+
+    /* Theme-aware Gold Accent Hierarchy */
+    body:not(.light) h1, body:not(.light) h2, body:not(.light) h3, body:not(.light) .section-head h2, body:not(.light) .forum-post h2 {
+      color: #f5f7fa;
+    }
+    body:not(.light) .signal, body:not(.light) .finding b, body:not(.light) .report-chat-head span {
+      color: var(--amber);
+    }
+    body:not(.light) .home-logo {
+      background: linear-gradient(90deg, #f7d77d, #b97a16);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+  </style>
+</head>
+<body>
+<div class="shell"><aside class="sidebar"><div class="brand"><span class="orb"></span>CortexOS</div><div><div class="eyebrow" style="padding:0 10px 8px">Enterprise intelligence</div><nav class="nav"><button class="active" data-view="overview">◌ Overview</button><button data-view="copilot">✦ Executive copilot</button><button data-view="simulator">⌁ Scenario lab</button><button data-view="agents">◈ Agent network</button><button data-view="memory">▣ Enterprise memory</button></nav></div><div class="workspace"><div class="eyebrow">Public-data workspace</div><b>Mahindra &amp; Mahindra</b><span style="color:var(--muted);font-size:11px">India · INR · FY26 annual report</span></div></aside>
+<main class="main"><header class="topbar"><div class="crumb">Mahindra &amp; Mahindra / <span id="crumb">Executive overview</span></div><div class="top-actions"><button class="icon-btn" onclick="showToast('Public FY26 report workspace is ready')">Data status</button><button class="avatar" aria-label="Open your profile" data-jump="profile">AK</button></div></header>
+<section class="view active" id="overview"><div class="hero"><div><div class="signal">Public-data workspace · FY26</div><h1 style="margin-top:12px">Mahindra, explained.</h1><p class="subtitle">A CortexOS reference workspace grounded in Mahindra &amp; Mahindra’s Integrated Annual Report FY2025–26. Operational recommendations remain illustrative until connected to internal systems.</p></div><button class="button primary" data-jump="copilot">Ask Cortex ✦</button></div><div class="grid kpis"><div class="card metric"><div class="label">Consolidated income from operations</div><div class="value">₹1,98,639 Cr</div><div class="delta up">↑ 25% vs FY25</div></div><div class="card metric"><div class="label">Consolidated PAT</div><div class="value">₹17,099 Cr</div><div class="delta up">↑ 32% vs FY25</div></div><div class="card metric"><div class="label">Standalone income from operations</div><div class="value">₹1,47,765 Cr</div><div class="delta up">↑ 25% vs FY25</div></div><div class="card metric"><div class="label">Decision workspace</div><div class="value">FY26</div><div class="delta" style="color:var(--amber)">Public evidence only</div></div></div><div class="grid content-grid"><article class="card insight"><div class="insight-head"><h2>Executive brief</h2><span class="tag">Public report evidence</span></div><p class="finding">FY26 growth was strong: consolidated income from operations reached <b>₹1,98,639 Cr</b> and PAT reached <b>₹17,099 Cr</b>.</p><p class="evidence">The report identifies supply-chain disruption, commodity-price volatility and forex movements as structural risks. Its stated mitigations include real-time supply-chain visibility, supplier diversification, buffers, long-term contracts and Board-approved hedging frameworks.</p><button class="link" data-jump="copilot">Review evidence & recommendation →</button></article><aside class="card"><div class="section-head"><h2>Decision opportunities</h2><span class="tag" style="color:var(--amber);background:rgba(248,193,92,.1)">Illustrative</span></div><div class="approval-list"><div class="approval" id="approval1"><div class="approval-head"><b>Review supplier concentration</b><span class="risk high">RISK REVIEW</span></div><small>Scenario based on the FY26 supply-chain resilience disclosures.</small><div class="approval-actions"><button class="mini ok" onclick="approve('approval1')">Open review</button><button class="mini" onclick="showToast('Public report evidence opened')">Evidence</button></div></div><div class="approval" id="approval2"><div class="approval-head"><b>Stress-test commodity exposure</b><span class="risk medium">SIMULATION</span></div><small>Uses reported commodity and forex risk context; not internal exposure data.</small><div class="approval-actions"><button class="mini ok" onclick="approve('approval2')">Run scenario</button><button class="mini" onclick="showToast('Scenario assumptions opened')">Assumptions</button></div></div></div></aside></div><section class="card activity"><div class="section-head"><h2>Evidence ledger</h2><span class="eyebrow">Mahindra Integrated Annual Report FY2025–26</span></div><div class="timeline"><div class="event"><time>p. 10</time><p><b>Finance Agent</b> indexed performance highlights. <span>Consolidated income from operations and PAT are used as factual FY26 anchors.</span></p></div><div class="event"><time>p. 38</time><p><b>Risk Agent</b> indexed supply-chain, commodity and forex risk disclosures. <span>All suggested controls are based on published management disclosures.</span></p></div><div class="event"><time>p. 50</time><p><b>Enterprise Agent</b> indexed the Digital &amp; AI strategy. <span>The report describes AI across customer journeys, operations and enterprise platforms.</span></p></div></div></section></section>
+
+<section class="view" id="copilot"><div class="hero"><div><div class="signal">Reasoning with Emotional Intelligence & Grounded Data</div><h1 style="margin-top:12px">Executive copilot</h1><p class="subtitle">Balances report-backed facts, contextual insights, scenario models, human recommendations, and team EQ / stakeholder empathy.</p></div></div><div class="chat-layout"><article class="card conversation"><div class="eyebrow">Current investigation</div><div id="copilotThread"><div class="query"><b>Executive question</b>What risks could affect margins and production continuity as the business grows?</div><div class="answer"><h3>FY26 performance is strong; supply resilience and team well-being are key leadership priorities.</h3><div class="four-col" style="grid-template-columns:repeat(5,1fr)"><div class="answer-block fact"><label>Facts</label><p>FY26 consolidated income was ₹1,98,639 Cr (+25%); PAT reached ₹17,099 Cr (+32%).</p></div><div class="answer-block ins"><label>Insight</label><p>The annual report highlights supply disruption, commodity volatility, and forex movements as core risks.</p></div><div class="answer-block pred"><label>Scenario, not forecast</label><p>Stress-test models can quantify supply-chain disruption sensitivity when internal systems connect.</p></div><div class="answer-block rec"><label>Recommendation</label><p>Use diversified sourcing and critical buffers; govern material risk through dual-control approvals.</p></div><div class="answer-block eq" style="border-left-color:#54ddff;background:rgba(84,221,255,.04)"><label style="color:#54ddff">Leadership EQ &amp; People</label><p>Communicate transparently with procurement teams to prevent change fatigue and sustain morale during vendor shifts.</p></div></div><p style="font-size:12px;line-height:1.6"><b>Emotional Intelligence Note:</b> While driving supply chain optimization, protect middle-management focus by avoiding arbitrary operational shifts. Mahindra’s published strategy emphasizes real-time visibility, supplier diversification, and structured hedging frameworks to maintain operational stability and team trust.</p><button class="button primary" onclick="showToast('A governed risk-review and team communication plan is ready')">Prepare risk & team review</button></div></div><form class="composer" onsubmit="ask(event)"><input id="askInput" placeholder="Ask about published performance, team impact, supply risk, or AI strategy…" aria-label="Ask Cortex" /><button class="button primary">Ask</button></form></article><aside class="card"><div class="section-head"><h2>Evidence &amp; EQ trail</h2><span class="tag">Traceable + Empathetic</span></div><div class="sources" id="copilotSources"><div class="source"><b>Performance highlights · p. 10</b><p>FY26 consolidated and standalone revenue and PAT figures.</p><span class="verified">✓ REPORT-BACKED</span></div><div class="source"><b>Risk management · p. 38</b><p>Supply-chain, commodity, and forex risk exposures and mitigations.</p><span class="verified">✓ REPORT-BACKED</span></div><div class="source"><b>Stakeholder Alignment · EQ</b><p>Cross-functional communication and team morale safeguards.</p><span class="verified" style="color:var(--cyan)">♥ EMPATHICALLY ALIGNED</span></div></div></aside></div></section>
+
+<section class="view" id="simulator"><div class="hero"><div><div class="signal">Simulation, not certainty</div><h1 style="margin-top:12px">Scenario lab</h1><p class="subtitle">Model cross-functional consequences before you commit. Assumptions are explicit and every outcome carries confidence bounds.</p></div><button class="button primary" onclick="showToast('Scenario saved to your decision workspace')">Save scenario</button></div><div class="grid sim-grid"><aside class="card"><div class="section-head"><h2>Supplier resilience plan</h2><span class="tag">Draft</span></div><div class="control"><label for="shift">Shift allocation to Supplier C <output id="shiftOut">30%</output></label><input id="shift" type="range" min="0" max="60" value="30"></div><div class="control"><label for="demand">Demand variance <output id="demandOut">+8%</output></label><input id="demand" type="range" min="-20" max="30" value="8"></div><div class="control"><label for="delay">Supplier C lead-time delta <output id="delayOut">+4 days</output></label><input id="delay" type="range" min="-2" max="14" value="4"></div><p style="color:var(--muted);font-size:11px;line-height:1.6">Assumptions draw on 24 months of supplier, quality, demand and cash-flow history. No production action will occur from this simulation.</p></aside><article class="card"><div class="section-head"><div><h2>Projected outcome · 12 months</h2><div class="eyebrow" style="margin-top:5px">Confidence interval based on historical variance</div></div><span class="tag" id="conf">76% confidence</span></div><div class="grid scenario-cards"><div class="scenario-card"><div class="eyebrow">Operating margin</div><div class="big" id="margin">+1.8 pts</div><div class="delta up">vs baseline case</div></div><div class="scenario-card"><div class="eyebrow">Working capital</div><div class="big" id="capital">₹15.0L</div><div class="delta up">released in 45 days</div></div><div class="scenario-card"><div class="eyebrow">Supply disruption risk</div><div class="big" id="riskval">Medium</div><div class="delta" style="color:var(--amber)">quality gate required</div></div></div><div class="chart"><svg viewBox="0 0 700 160" role="img" aria-label="Projected monthly operating margin trend"><defs><linearGradient id="g" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#54ddff"/><stop offset="1" stop-color="#54ddff" stop-opacity="0"/></linearGradient></defs><path class="dash" d="M0 35H700M0 82H700M0 130H700"/><path class="area" id="area" d="M0,124 L64,117 L128,113 L192,105 L256,90 L320,82 L384,73 L448,64 L512,59 L576,49 L640,42 L700,34 L700,150 L0,150Z"/><path class="line" id="simLine" d="M0,124 L64,117 L128,113 L192,105 L256,90 L320,82 L384,73 L448,64 L512,59 L576,49 L640,42 L700,34"/><text x="0" y="157">JUL</text><text x="215" y="157">OCT</text><text x="440" y="157">JAN</text><text x="656" y="157">APR</text></svg></div><div class="barrow"><span>Finance impact</span><div class="bar"><i id="b1" style="width:75%"></i></div><span id="v1">+₹54L</span></div><div class="barrow"><span>Quality exposure</span><div class="bar"><i id="b2" style="width:34%"></i></div><span id="v2">Moderate</span></div><div class="barrow"><span>Logistics pressure</span><div class="bar"><i id="b3" style="width:46%"></i></div><span id="v3">+4 days</span></div></article></div></section>
+
+<section class="view" id="agents"><div class="hero"><div><div class="signal">8 specialists coordinated</div><h1 style="margin-top:12px">Agent network</h1><p class="subtitle">The orchestrator delegates within tightly defined authority boundaries, reconciles conflicts, and assembles an accountable executive decision.</p></div><button class="button" onclick="showToast('Agent activity log opened')">View audit log</button></div><div class="grid agents"><article class="card agent"><div class="agent-icon">FIN</div><h2>Finance Agent</h2><p>Cash position, margin variance, close readiness and invoice controls.</p><footer><span>13 evidence sources</span><b>Active</b></footer></article><article class="card agent"><div class="agent-icon" style="color:var(--violet);background:rgba(157,139,255,.11)">PRC</div><h2>Procurement Agent</h2><p>Supplier risk, PO terms, price drift and allocation optimization.</p><footer><span>9 evidence sources</span><b>Active</b></footer></article><article class="card agent"><div class="agent-icon" style="color:var(--amber);background:rgba(248,193,92,.11)">INV</div><h2>Inventory Agent</h2><p>Stock accuracy, warehouse flow, replenishment and aged inventory.</p><footer><span>7 evidence sources</span><b>Active</b></footer></article><article class="card agent"><div class="agent-icon">RSK</div><h2>Risk Agent</h2><p>Policy breaches, supplier concentration, scenario sensitivity and controls.</p><footer><span>6 evidence sources</span><b>Active</b></footer></article><article class="card agent"><div class="agent-icon" style="color:var(--violet);background:rgba(157,139,255,.11)">QLT</div><h2>Quality Agent</h2><p>Supplier quality gates, inspection history and release exceptions.</p><footer><span>4 evidence sources</span><b>Standby</b></footer></article><article class="card agent"><div class="agent-icon" style="color:var(--cyan);background:rgba(84,221,255,.11)">CMP</div><h2>Compliance Agent</h2><p>Regulatory policy packs, legal hold, tax rules, and audit logging.</p><footer><span>8 evidence sources</span><b>Active</b></footer></article><article class="card agent"><div class="agent-icon" style="color:var(--lime);background:rgba(183,240,90,.11)">PLN</div><h2>Planning Agent</h2><p>Demand variance, capacity bounds, S&amp;OP alignment, and targets.</p><footer><span>5 evidence sources</span><b>Active</b></footer></article><article class="card agent"><div class="agent-icon" style="color:var(--amber);background:rgba(248,193,92,.11)">ORG</div><h2>Enterprise Orchestrator</h2><p>Intent routing, conflict resolution, approval policy and final synthesis.</p><footer><span>Audit trail immutable</span><b>Active</b></footer></article></div></section>
+
+<section class="view" id="memory"><div class="hero"><div><div class="signal">Curated organizational memory</div><h1 style="margin-top:12px">Enterprise memory</h1><p class="subtitle">Cortex retains verified, decision-relevant knowledge—not an uncontrolled archive of raw operational data.</p></div><button class="button" onclick="showToast('Memory retention policy: 7 years for financial knowledge')">Retention policy</button></div><article class="card"><div class="section-head"><h2>High-value organizational knowledge</h2><span class="tag">112,840 memories consolidated</span></div><div style="overflow:auto"><table class="memory-table"><thead><tr><th>Knowledge</th><th>Domain</th><th>Confidence</th><th>Last validated</th><th>Provenance</th></tr></thead><tbody><tr><td>Supplier A price changes lead market index by 14–21 days.</td><td><span class="pill">Procurement</span></td><td style="color:var(--lime)">94%</td><td>Today, 09:18</td><td>PO ledger · 24 months</td></tr><tr><td>WH-04 stock dwell rises after month-end demand spikes.</td><td><span class="pill">Inventory</span></td><td style="color:var(--lime)">89%</td><td>Today, 09:28</td><td>WMS · 18 months</td></tr><tr><td>Customer Delta settles 11 days late during Q4.</td><td><span class="pill">Finance</span></td><td style="color:var(--amber)">81%</td><td>Jul 11</td><td>AR ledger · 3 years</td></tr><tr><td>Supplier C quality yield holds above 98% below 35% allocation.</td><td><span class="pill">Quality</span></td><td style="color:var(--amber)">78%</td><td>Jul 08</td><td>Inspection data · 16 months</td></tr></tbody></table></div></article></section>
+<section class="view" id="profile"><div class="hero"><div><div class="signal">Identity verified · SSO</div><h1 style="margin-top:12px">Your profile</h1><p class="subtitle">Personal permissions, decision authority, and trusted workspace access.</p></div><button class="button" onclick="showToast('Profile settings will be available after identity integration')">Manage settings</button></div><div class="grid content-grid"><article class="card" style="padding:26px"><div style="display:flex;gap:16px;align-items:center"><div class="avatar" style="width:58px;height:58px;font-size:18px;cursor:default">AK</div><div><h2 style="font-size:20px">Aman Karan</h2><p style="color:var(--muted);margin:5px 0 0">Chief Executive Officer · Horizon Manufacturing</p></div></div><div class="grid kpis" style="margin-top:28px"><div class="metric"><div class="label">Decision authority</div><div class="value" style="font-size:17px">Executive</div><div class="delta up">Level 5 approval</div></div><div class="metric"><div class="label">Workspace access</div><div class="value" style="font-size:17px">5 domains</div><div class="delta up">Finance · Risk · Ops</div></div><div class="metric"><div class="label">Authentication</div><div class="value" style="font-size:17px">SSO + MFA</div><div class="delta up">Verified today</div></div><div class="metric"><div class="label">Active sessions</div><div class="value" style="font-size:17px">1</div><div class="delta">This device</div></div></div></article><aside class="card"><div class="section-head"><h2>Policy safeguards</h2><span class="tag">Enforced</span></div><div class="approval-list"><div class="approval"><div class="approval-head"><b>Financial approvals</b><span class="risk high">DUAL CONTROL</span></div><small>Payments above ₹50L require a second authorized approver.</small></div><div class="approval"><div class="approval-head"><b>AI delegation</b><span class="risk medium">RECOMMEND ONLY</span></div><small>Cortex may prepare decisions but cannot execute high-impact actions.</small></div><div class="approval"><div class="approval-head"><b>Audit retention</b><span class="tag">7 YEARS</span></div><small>Your approvals and rationale are retained in the decision trail.</small></div></div></aside></div></section>
+</main></div><div class="toast" id="toast" role="status"></div>
+<script>
+const labels={home:'CortexOS home',overview:'Executive overview',copilot:'Executive copilot',simulator:'Scenario lab',agents:'Agent network',memory:'Enterprise memory',profile:'Your profile',forum:'Manager forum',reports:'Report studio'};
+const main=document.querySelector('.main');
+const nav=document.querySelector('.nav');
+nav.insertAdjacentHTML('afterbegin','<button data-view="home">✦ Home</button><button data-view="reports">▤ Report studio</button><button data-view="forum">◌ Manager forum</button>');
+document.querySelector('.brand').outerHTML='<button class="brand home-brand" data-jump="home" aria-label="Open CortexOS home"><span class="orb"></span>CortexOS</button>';
+main.insertAdjacentHTML('afterbegin',`<section class="view" id="home"><div class="home-hero"><div class="home-copy"><div class="signal">Enterprise intelligence system</div><h1>See the business<br>before it happens.</h1><p>CortexOS turns trusted enterprise data into explainable decisions, simulations and governed action—across every team.</p><div class="home-actions"><button class="button primary" data-jump="overview">Enter workspace →</button><button class="button" data-jump="agents">Explore agent network</button></div><div class="home-proof"><span>◌ Grounded evidence</span><span>◈ Human authority</span><span>⌁ Scenario intelligence</span></div></div><div class="intelligence-stage" aria-label="Animated CortexOS intelligence core"><div class="orbit orbit-a"></div><div class="orbit orbit-b"></div><div class="orbit orbit-c"></div><span class="satellite s1">FIN</span><span class="satellite s2">RSK</span><span class="satellite s3">OPS</span><span class="satellite s4">AI</span><div class="core"><div class="core-shine"></div><b>C</b><small>CORTEX<br>CORE</small></div><div class="stage-caption"><span class="signal">Live enterprise twin</span><strong>42 verified sources</strong><em>Coordinating 8 governed agents</em></div></div></div><div class="home-rail"><span>01 / INTELLIGENCE</span><span>02 / DIGITAL TWIN</span><span>03 / DECISION SYSTEM</span><span>04 / GOVERNED ACTION</span></div></section>`);
+main.insertAdjacentHTML('beforeend',`<section class="view" id="forum"><div class="hero"><div><div class="signal">Governed collaboration</div><h1 style="margin-top:12px">Manager forum</h1><p class="subtitle">Publish operational context to the people who are permitted to see it. Every update carries an author, audience and audit timestamp.</p></div><button class="button" onclick="forumFilter('all')">All permitted updates</button></div><div class="forum-layout"><aside class="card forum-compose"><div class="section-head"><h2>Post an update</h2><span class="tag">Manager</span></div><form id="forumForm"><label>Update title<input class="form-field" id="postTitle" required placeholder="e.g. Supplier risk review"></label><label>Message<textarea class="form-field" id="postMessage" required placeholder="Share the decision, risk, or operational context…"></textarea></label><label>Audience<select class="form-field" id="postAudience"><option value="Leadership">Leadership</option><option value="Finance">Finance</option><option value="Operations">Operations</option><option value="All managers">All managers</option></select></label><button class="button primary" type="submit">Publish update</button></form><p class="forum-note">High-impact items should be created as approval workflows, not forum posts.</p></aside><article class="forum-feed"><div id="forumFeed"></div></article></div></section>`);
+main.insertAdjacentHTML('beforeend',`<section class="view" id="reports"><div class="hero"><div><div class="signal">Private report workspace</div><h1 style="margin-top:12px">Report studio</h1><p class="subtitle">Upload a raw operational file or a finished report. CortexOS prepares an executive-ready draft while retaining the source context and review boundary.</p></div></div><div class="report-layout"><aside class="card report-upload"><div class="section-head"><h2>Upload report</h2><span class="tag">Local prototype</span></div><form id="reportForm"><label class="drop-zone" for="reportFile"><span>⇧</span><b>Choose a report</b><small>PDF, DOCX, XLSX, CSV, TXT, or MD</small><input id="reportFile" type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.md" required></label><label>Report title<input class="form-field" id="reportTitle" placeholder="e.g. Q3 supply-chain review"></label><label>Report type<select class="form-field" id="reportType"><option>Raw operational report</option><option>Financial report</option><option>Risk and compliance report</option><option>Board / executive report</option></select></label><label>Audience<select class="form-field" id="reportAudience"><option>Leadership</option><option>Finance</option><option>Operations</option><option>All managers</option></select></label><button class="button primary" type="submit">Generate executive report</button></form><p class="forum-note">Files are not uploaded to a server in this prototype. Do not use confidential data here.</p></aside><article class="card report-output"><div class="section-head"><div><h2 id="generatedTitle">Generated report</h2><div class="eyebrow" id="generatedMeta" style="margin-top:5px">Select a file to begin</div></div><span class="tag" id="reportStatus">Awaiting source</span></div><div id="reportDraft" class="report-draft"><div class="report-empty"><b>From raw source to executive decision</b><p>Upload a report and CortexOS will create a review-ready summary with facts, insights, risks, decisions, and required approvals.</p></div></div></article></div></section>`);
+document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.view)));
+document.querySelectorAll('[data-jump]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.jump)));
+document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.view)));
+document.querySelectorAll('[data-jump]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.jump)));
+function go(id){document.querySelectorAll('.view').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===id));document.getElementById('crumb').textContent=labels[id];window.scrollTo({top:0,behavior:'smooth'})}
+function showToast(message){const t=document.getElementById('toast');t.textContent=message;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3200)}
+function approve(id){const a=document.getElementById(id);a.innerHTML='<div class="approval-head"><b>Approved and logged</b><span class="tag">COMPLETE</span></div><small>Authorization recorded in immutable decision trail.</small>';showToast('Approval recorded with your identity and policy context')}
+function ask(e){e.preventDefault();const input=document.getElementById('askInput');const q=input.value.trim();if(!q)return;const thread=document.getElementById('copilotThread');const sources=document.getElementById('copilotSources');const logged=JSON.parse(localStorage.getItem('cortexos-logged-report')||'null');showToast('Cortex is grounding the answer with Emotional Intelligence…');setTimeout(()=>{input.value='';const factText=logged?`Logged source "${logged.title}": ${logged.content.slice(0,120)}…`:`FY26 consolidated income from operations was ₹1,98,639 Cr (+25%), PAT was ₹17,099 Cr (+32%).`;const insightText=logged?`Submitted under audience scope [${logged.audience}]. Material findings require manager verification.`:`Supply disruption, commodity pricing, and forex movements represent key structural operating risks.`;const scenarioText=`Scenario model required for quantifiable impact analysis. Baseline confidence score: 84%.`;const recText=`Route proposed operational adjustments through dual-control governance approval.`;const eqText=`Ensure clear communication with team members to protect morale, alleviate change anxiety, and foster trust during execution.`;const sourceTitle=logged?`${logged.source} · Logged Entry`:`Mahindra Integrated Annual Report FY26`;thread.insertAdjacentHTML('beforeend',`<div class="query" style="margin-top:24px"><b>Executive question</b>${esc(q)}</div><div class="answer"><h3>Analysis &amp; Leadership EQ grounded in ${esc(logged?'logged report evidence':'public FY26 report evidence')}</h3><div class="four-col" style="grid-template-columns:repeat(5,1fr)"><div class="answer-block fact"><label>Facts</label><p>${esc(factText)}</p></div><div class="answer-block ins"><label>Insight</label><p>${esc(insightText)}</p></div><div class="answer-block pred"><label>Scenario, not forecast</label><p>${esc(scenarioText)}</p></div><div class="answer-block rec"><label>Recommendation</label><p>${esc(recText)}</p></div><div class="answer-block eq" style="border-left-color:#54ddff;background:rgba(84,221,255,.04)"><label style="color:#54ddff">Leadership EQ &amp; People</label><p>${esc(eqText)}</p></div></div><p style="font-size:12px;line-height:1.6"><b>Empathetic Leadership Note:</b> High-impact executive decisions succeed when numerical rigour is paired with psychological safety and transparent stakeholder dialogue. Evidence source: <b>${esc(sourceTitle)}</b>.</p><button class="button primary" onclick="showToast('Risk review & team alignment plan initialized')">Prepare risk &amp; team review</button></div>`);if(sources){sources.insertAdjacentHTML('afterbegin',`<div class="source"><b>${esc(q.slice(0,25))}…</b><p>${esc(sourceTitle)}</p><span class="verified" style="color:var(--cyan)">♥ EQ &amp; REPORT ALIGNED</span></div>`)}showToast('Traceable, emotionally intelligent answer added to your investigation')},600)}
+const sim = Object.fromEntries(['shift','demand','delay','shiftOut','demandOut','delayOut','margin','capital','riskval','conf','v1','v2','v3','b1','b2','b3','simLine','area'].map(id=>[id,document.getElementById(id)]));
+['shift','demand','delay'].forEach(x=>sim[x].addEventListener('input',updateSim));
+function updateSim(){let s=+sim.shift.value,d=+sim.demand.value,l=+sim.delay.value;sim.shiftOut.textContent=s+'%';sim.demandOut.textContent=(d>0?'+':'')+d+'%';sim.delayOut.textContent=(l>0?'+':'')+l+' days';let m=(.6+s*.04-d*.015-l*.025).toFixed(1), c=Math.max(2,s*.5-d*.15-l*.3).toFixed(1), risk=l>8?'High':l>3?'Medium':'Low', confidence=Math.max(55,Math.floor(88-Math.abs(d)*.45-l*.75));sim.margin.textContent=(m>=0?'+':'')+m+' pts';sim.capital.textContent='₹'+c+'L';sim.riskval.textContent=risk;sim.conf.textContent=confidence+'% confidence';sim.v1.textContent='+'+'₹'+Math.max(10,Math.round(s*1.8-d*.4-l))+'L';sim.v2.textContent=risk;sim.v3.textContent=(l>0?'+':'')+l+' days';sim.b1.style.width=Math.min(95,35+s)+'%';sim.b2.style.width=Math.min(95,20+l*5)+'%';sim.b3.style.width=Math.min(95,25+l*5)+'%';let y=128-s*.8+d*.3+l*1.2;sim.simLine.setAttribute('d',`M0,124 L64,${120+d*.08} L128,${114+d*.1} L192,${110-d*.05} L256,${101-s*.16+l*.2} L320,${94-s*.22+l*.35} L384,${87-s*.34+l*.5} L448,${80-s*.42+l*.65} L512,${74-s*.5+l*.8} L576,${68-s*.58+l*.95} L640,${60-s*.62+l} L700,${Math.max(24,y)}`);sim.area.setAttribute('d',sim.simLine.getAttribute('d')+' L700,150 L0,150Z')}
+const seedPosts=[{title:'Commodity exposure review is scheduled',body:'Finance and procurement leads will review the commodity and forex sensitivity template against approved internal data. No trading or supplier action has been authorised.',audience:'Leadership',author:'Priya Shah',initials:'PS',role:'Chief Financial Officer',time:'Today · 10:16'},{title:'Critical component resilience playbook updated',body:'Operations has published the manager-facing playbook covering alternate sourcing, component buffers and escalation thresholds. Please acknowledge the revised procedure before the next planning cycle.',audience:'Operations',author:'Rohan Mehta',initials:'RM',role:'Operations Director',time:'Today · 09:42'},{title:'FY26 public-report workspace is available',body:'The reference workspace now distinguishes reported performance facts from illustrative operational scenarios. Use it for strategy discussion only; internal system data is required before decisions are made.',audience:'All managers',author:'Aman Karan',initials:'AK',role:'Chief Executive Officer',time:'Today · 08:30'}];
+let forumPosts=JSON.parse(localStorage.getItem('cortexos-forum-posts')||'null')||seedPosts;
+function esc(value){const d=document.createElement('div');d.textContent=value;return d.innerHTML}
+function renderForum(audience='all'){const permitted=audience==='all'?forumPosts:forumPosts.filter(p=>p.audience===audience||p.audience==='All managers');document.getElementById('forumFeed').innerHTML=permitted.map((p,i)=>`<article class="card forum-post"><div class="forum-post-header"><div style="display:flex;gap:10px"><div class="forum-person">${esc(p.initials)}</div><div><h2>${esc(p.title)}</h2><div class="forum-meta"><span>${esc(p.author)} · ${esc(p.role)}</span><span>·</span><span>${esc(p.time)}</span></div></div></div><span class="audience">${esc(p.audience)}</span></div><p>${esc(p.body)}</p><footer><button type="button" onclick="showToast('Acknowledgement recorded in the local prototype')">◌ Acknowledge</button><button type="button" onclick="showToast('Discussion thread opened')">◌ Discuss</button><span>Audit status: logged</span></footer></article>`).join('')||'<div class="card">No updates are visible for this audience.</div>'}
+function forumFilter(audience){renderForum(audience);showToast('Showing updates permitted for your role')}
+document.getElementById('forumForm').addEventListener('submit',e=>{e.preventDefault();const title=document.getElementById('postTitle').value.trim(),body=document.getElementById('postMessage').value.trim(),audience=document.getElementById('postAudience').value;if(!title||!body)return;forumPosts.unshift({title,body,audience,author:'Aman Karan',initials:'AK',role:'Chief Executive Officer',time:'Just now'});localStorage.setItem('cortexos-forum-posts',JSON.stringify(forumPosts));e.target.reset();renderForum();showToast('Update published to '+audience+' and recorded in the audit trail')});
+document.querySelector('.core').innerHTML='<div class="accretion accretion-one"></div><div class="accretion accretion-two"></div><div class="event-horizon"></div><div class="core-shine"></div>';
+const themeButton=document.createElement('button');themeButton.className='icon-btn theme-toggle';themeButton.type='button';document.querySelector('.top-actions').prepend(themeButton);
+function setTheme(theme){document.body.classList.toggle('light',theme==='light');themeButton.textContent=theme==='light'?'◐':'☼';themeButton.setAttribute('aria-label',theme==='light'?'Switch to dark mode':'Switch to light mode');themeButton.setAttribute('data-tooltip',theme==='light'?'Dark mode':'Light mode');localStorage.setItem('cortexos-theme',theme)}
+themeButton.addEventListener('click',()=>setTheme(document.body.classList.contains('light')?'dark':'light'));setTheme(localStorage.getItem('cortexos-theme')||'dark');
+const workspace=document.querySelector('.workspace');const statusButton=document.querySelector('.top-actions .icon-btn');const profileButton=document.querySelector('.top-actions .avatar');statusButton.textContent='◉';statusButton.setAttribute('aria-label','Data status');statusButton.setAttribute('data-tooltip','Data status');workspace.innerHTML='<div class="eyebrow">Enterprise controls</div>';workspace.append(statusButton,themeButton,profileButton);
+statusButton.remove();document.querySelector('.home-proof').remove();document.querySelector('.crumb').innerHTML='<span id="crumb">CortexOS</span>';
+const homeControls=document.createElement('div');homeControls.className='home-top-controls';document.body.append(homeControls);homeControls.append(themeButton,profileButton);const homeLogo=document.createElement('button');homeLogo.className='home-logo';homeLogo.innerHTML='<span class="orb"></span>CortexOS';homeLogo.type='button';homeLogo.addEventListener('click',()=>go('home'));document.body.append(homeLogo);
+const starLayer=document.createElement('div');starLayer.className='star-layer';for(let i=0;i<74;i++){const star=document.createElement('i');star.style.setProperty('--x',(Math.random()*99)+'%');star.style.setProperty('--y',(Math.random()*96)+'%');star.style.setProperty('--s',(Math.random()*2.1+.45)+'px');star.style.setProperty('--d',(Math.random()*3.6+1.4)+'s');star.style.setProperty('--delay',(-Math.random()*5)+'s');starLayer.append(star)}document.getElementById('home').prepend(starLayer);
+const smokeLayer=document.createElement('div');smokeLayer.className='cursor-smoke';document.body.append(smokeLayer);let smokeUntil=0,lastSmoke=0;function puff(x,y,burst=false){const particle=document.createElement('i');const light=document.body.classList.contains('light');particle.style.left=x+'px';particle.style.top=y+'px';particle.style.setProperty('--size',(burst?14:8)+Math.random()*(burst?24:12)+'px');particle.style.setProperty('--blur',(burst?5:3)+Math.random()*5+'px');particle.style.setProperty('--duration',(burst?.9:.75)+Math.random()*.65+'s');particle.style.setProperty('--dx',((Math.random()-.5)*(burst?140:45))+'px');particle.style.setProperty('--dy',(-18-Math.random()*(burst?95:38))+'px');particle.style.setProperty('--smoke',light?'rgba(88,95,103,.52)':'rgba(236,176,53,.56)');smokeLayer.append(particle);setTimeout(()=>particle.remove(),1700)}document.addEventListener('dblclick',e=>{smokeUntil=Date.now()+4000;for(let i=0;i<16;i++)puff(e.clientX,e.clientY,true)});document.addEventListener('pointermove',e=>{if(Date.now()<smokeUntil&&Date.now()-lastSmoke>42){lastSmoke=Date.now();puff(e.clientX,e.clientY)}});
+homeLogo.innerHTML='<span class="logo-mark" aria-hidden="true"></span><span>CortexOS</span>';
+const navigateTo=go;go=function(id){navigateTo(id);document.body.classList.toggle('home-active',id==='home')};
+document.getElementById('reportDraft').insertAdjacentHTML('beforebegin',`<div class="report-chat"><div class="report-chat-head"><span>✦ Report Copilot</span><small>Raw notes in · executive report out</small></div><div class="report-thread" id="reportThread"><div class="report-bubble cortex"><b>CortexOS Report Copilot</b><span>Paste any raw notes, findings, or report content. I’ll turn it into a structured, review-ready management report.</span></div></div><form id="reportChatForm"><textarea id="reportPrompt" placeholder="Example: Revenue grew 18%, but supplier pricing and inventory delays reduced operating margin. Recommend a review of sourcing and working capital…" required></textarea><button class="button primary" type="submit">Generate report ✦</button></form></div>`);
+function executiveDraft(title,content,audience,source){const cleaned=content.trim().replace(/\s+/g,' ');const summary=cleaned.length>300?cleaned.slice(0,300)+'…':cleaned;document.getElementById('generatedTitle').textContent=title;document.getElementById('generatedMeta').textContent=source+' · audience: '+audience;document.getElementById('reportStatus').textContent='Review required';document.getElementById('reportDraft').innerHTML=`<p class="report-lead"><b>Executive summary.</b> ${esc(summary)}</p><div class="report-sections"><article class="report-section fact"><h3>Reported facts</h3><p>The source content has been organized as reported information. A designated manager must confirm figures, dates, scope, and source lineage before circulation.</p></article><article class="report-section insight"><h3>Management insight</h3><p>The material operating theme is the relationship between performance, dependencies, and the exceptions requiring cross-functional attention.</p></article><article class="report-section risk"><h3>Risk and confidence</h3><p>Validate underlying evidence and assign impact, likelihood, accountable owner, due date, and compliance implications to each material risk.</p></article><article class="report-section action"><h3>Decision request</h3><p>Share with <b>${esc(audience)}</b> for review. Route high-impact financial, legal, supplier, payroll, or compliance actions into the governed approval workflow.</p></article></div>`;document.getElementById('reportThread').insertAdjacentHTML('beforeend',`<div class="report-bubble user"><b>You</b><span>${esc(cleaned)}</span></div><div class="report-bubble cortex"><b>CortexOS Report Copilot</b><span>Your executive report is ready. It separates source facts, management insight, risks, and requested decisions.</span></div>`);document.getElementById('reportThread').scrollTop=document.getElementById('reportThread').scrollHeight}
+document.getElementById('reportChatForm').addEventListener('submit',e=>{e.preventDefault();const prompt=document.getElementById('reportPrompt');const title=document.getElementById('reportTitle').value.trim()||'Management report';const audience=document.getElementById('reportAudience').value;executiveDraft(title,prompt.value,audience,'User-provided report content');prompt.value='';showToast('Executive report generated for '+audience)});
+document.getElementById('reportFile').addEventListener('change',e=>{const file=e.target.files[0];if(file){document.querySelector('.drop-zone b').textContent=file.name;document.querySelector('.drop-zone small').textContent=(file.size/1024/1024).toFixed(2)+' MB · ready for review';if(file.type.startsWith('text/')||file.name.endsWith('.csv')||file.name.endsWith('.md')||file.name.endsWith('.txt')||file.name.endsWith('.json')){const reader=new FileReader();reader.onload=(evt)=>{file._text=evt.target.result};reader.readAsText(file)}}});
+document.getElementById('reportForm').addEventListener('submit',e=>{e.preventDefault();const file=document.getElementById('reportFile').files[0];if(!file){showToast('Choose a report first');return}const title=document.getElementById('reportTitle').value.trim()||file.name.replace(/\.[^.]+$/,'');const type=document.getElementById('reportType').value,audience=document.getElementById('reportAudience').value;const content=file._text?file._text:'Uploaded report artifact: '+file.name+'. The source must be reviewed and extracted before factual claims are used.';executiveDraft(title,content,audience,file.name);pendingReport={title,content,audience,source:file.name,time:new Date().toLocaleString()};document.getElementById('logReportButton').disabled=false;document.getElementById('reportLogNote').textContent='Report artifact is ready to log. Uploaded files require source review before claims become decisions.';showToast('Executive report draft generated for '+audience)});
+document.getElementById('reportDraft').insertAdjacentHTML('afterend','<button class="button primary report-log" id="logReportButton" type="button" disabled>Log report entry to overview</button><p class="report-log-note" id="reportLogNote">Generate a report, review it, then explicitly log it. Nothing appears in the overview before this step.</p>');
+let pendingReport=null;
+function reportNumbers(text){return [...text.matchAll(/(?:₹|\$|€)?\s?\d[\d,]*(?:\.\d+)?\s?(?:Cr|crore|L|%|million|bn)?/gi)].map(m=>m[0].trim()).filter(Boolean).slice(0,3)}
+function renderGovernedModules(logged){const simulator=document.getElementById('simulator'),memory=document.getElementById('memory');if(!logged){const empty=`<div class="empty-overview"><div class="signal">No business data logged</div><h1>Awaiting a source entry.</h1><p>Scenario modelling and enterprise memory activate only after a manager logs a report or manual entry in Report Studio.</p><button class="button primary" onclick="go('reports')">Open Report Studio</button></div>`;simulator.innerHTML=empty;memory.innerHTML=empty;return}simulator.innerHTML=`<div class="hero"><div><div class="signal">Source-bound scenario</div><h1 style="margin-top:12px">Scenario lab</h1><p class="subtitle">Use assumptions explicitly supplied by a manager. CortexOS will not invent baseline values, forecasts, or operational relationships.</p></div></div><div class="grid sim-grid"><aside class="card"><div class="section-head"><h2>Scenario assumptions</h2><span class="tag">Manual input</span></div><form id="scenarioForm" class="scenario-form"><label>Scenario name<input class="form-field" id="scenarioName" placeholder="e.g. Supplier disruption"></label><label>Assumptions<textarea class="form-field" id="scenarioNotes" placeholder="Enter measurable changes, constraints, scope, and time horizon…" required></textarea></label><button class="button primary">Prepare review scenario</button></form></aside><article class="card"><div class="section-head"><h2>Scenario review</h2><span class="tag">No forecast yet</span></div><div id="scenarioReview" class="report-empty"><b>Source: ${esc(logged.title)}</b><p>Enter assumptions to create a review package. A production engine would calculate outcomes only from connected, validated enterprise data.</p></div></article></div>`;document.getElementById('scenarioForm').addEventListener('submit',e=>{e.preventDefault();const name=document.getElementById('scenarioName').value.trim()||'Untitled scenario',notes=document.getElementById('scenarioNotes').value.trim();document.getElementById('scenarioReview').innerHTML=`<div class="scenario-review"><div class="eyebrow">Review package</div><h2>${esc(name)}</h2><p><b>Logged source:</b> ${esc(logged.source)}</p><p><b>Manager assumptions:</b> ${esc(notes)}</p><p class="text-muted">No numeric outcome has been generated because no validated baseline model or connected operational data is available.</p><button class="button" onclick="showToast('Scenario routed for governed review')">Route for review</button></div>`;showToast('Scenario package prepared without inventing forecast data')});memory.innerHTML=`<div class="hero"><div><div class="signal">Governed organizational memory</div><h1 style="margin-top:12px">Enterprise memory</h1><p class="subtitle">Only manager-logged, provenance-linked knowledge is retained. CortexOS does not create historical memory from unverified assumptions.</p></div></div><article class="card"><div class="section-head"><h2>Logged knowledge</h2><span class="tag">1 verified entry</span></div><div style="overflow:auto"><table class="memory-table"><thead><tr><th>Knowledge</th><th>Source</th><th>Audience</th><th>Logged</th><th>Status</th></tr></thead><tbody><tr><td>${esc(logged.content.length>150?logged.content.slice(0,150)+'…':logged.content)}</td><td>${esc(logged.source)}</td><td><span class="pill">${esc(logged.audience)}</span></td><td>${esc(logged.time)}</td><td style="color:var(--amber)">Review required</td></tr></tbody></table></div></article>`}
+function clearLoggedReport(){localStorage.removeItem('cortexos-logged-report');renderOverviewFromLog();showToast('Logged report reset. Overview is now awaiting a source entry.')}
+function renderOverviewFromLog(){const overview=document.getElementById('overview');const logged=JSON.parse(localStorage.getItem('cortexos-logged-report')||'null');renderGovernedModules(logged);if(!logged){overview.innerHTML=`<div class="empty-overview"><div class="signal">No business data logged</div><h1>Awaiting a governed report entry.</h1><p>Upload a report or paste raw notes in Report Studio. Review the generated draft, then log it to make evidence visible across CortexOS.</p><button class="button primary" id="openReportStudio">Open Report Studio</button></div>`;document.getElementById('openReportStudio').addEventListener('click',()=>go('reports'));return}const values=reportNumbers(logged.content);const metricMarkup=values.length?values.map((v,i)=>`<div class="card metric"><div class="label">Reported value ${i+1}</div><div class="value">${esc(v)}</div><div class="delta up">From logged source</div></div>`).join(''):'<div class="card metric"><div class="label">Logged source</div><div class="value">Narrative</div><div class="delta up">No numeric claims extracted</div></div>';overview.innerHTML=`<div class="hero"><div><div class="signal">Logged evidence · ${esc(logged.time)}</div><h1 style="margin-top:12px">${esc(logged.title)}</h1><p class="subtitle">This overview is generated only from the manager-logged source. All displayed content remains subject to review and approval.</p></div><div style="display:flex;gap:10px"><button class="button" onclick="go('reports')">View source report</button><button class="button" onclick="clearLoggedReport()">Reset / Clear logged data</button></div></div><div class="grid kpis">${metricMarkup}</div><div class="grid content-grid"><article class="card insight"><div class="insight-head"><h2>Source summary</h2><span class="tag">${esc(logged.audience)}</span></div><p class="finding">${esc(logged.content.length>230?logged.content.slice(0,230)+'…':logged.content)}</p><p class="evidence">Source: ${esc(logged.source)}. Logged by the manager workspace as an evidence artifact. No inferred financial or operational facts are shown beyond the submitted content.</p><button class="link" onclick="go('reports')">Review report entry →</button></article><aside class="card"><div class="section-head"><h2>Governance status</h2><span class="tag">Logged</span></div><div class="approval-list"><div class="approval"><div class="approval-head"><b>Source entry</b><span class="risk medium">REVIEW</span></div><small>${esc(logged.source)}</small></div><div class="approval"><div class="approval-head"><b>Audience</b><span class="tag">${esc(logged.audience)}</span></div><small>Any action still requires a governed approval route.</small></div></div></aside></div>`}
+document.getElementById('reportChatForm').addEventListener('submit',e=>{const content=document.getElementById('reportPrompt').value.trim();if(!content)return;pendingReport={title:document.getElementById('reportTitle').value.trim()||'Management report',content,audience:document.getElementById('reportAudience').value,source:'User-provided report content',time:new Date().toLocaleString()};setTimeout(()=>{document.getElementById('logReportButton').disabled=false;document.getElementById('reportLogNote').textContent='Draft generated. Log it only after a manager has reviewed the source content.'},0)},true);
+document.getElementById('logReportButton').addEventListener('click',async ()=>{if(!pendingReport){showToast('Generate or upload a report first');return}localStorage.setItem('cortexos-logged-report',JSON.stringify(pendingReport));renderOverviewFromLog();document.getElementById('reportLogNote').textContent='Entry logged to the overview at '+pendingReport.time+'.';showToast('Report entry logged. Overview updated from this governed source.');try{await fetch('http://localhost:8000/v1/reports/log',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(pendingReport)})}catch(e){console.log('FastAPI sync note:',e)}});
+renderOverviewFromLog();
+renderForum();
+go('home');
+</script></body></html>
